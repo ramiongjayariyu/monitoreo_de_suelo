@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OPERADOR
+  CONSULTA
+}
+
+enum NodeStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum AlertSeverity {
+  INFO
+  ADVERTENCIA
+  CRITICA
+}
+
+enum AlertStatus {
+  ACTIVA
+  LEIDA
+  SILENCIADA
+  CERRADA
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String
+  role                UserRole             @default(CONSULTA)
+  active              Boolean              @default(true)
+  twoFactorEnabled    Boolean              @default(false)
+  twoFactorSecret     String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  auditLogs           AuditLog[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  reports             ReportRecord[]
+
+  @@index([role, active])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model Node {
+  id           String     @id @default(cuid())
+  deviceId     String     @unique
+  name         String
+  notes        String?
+  posX         Float      @default(0)
+  posY         Float      @default(0)
+  cropId       String?
+  stateId      String?
+  samplingFreq Int        @default(300)
+  status       NodeStatus @default(OFFLINE)
+  battery      Float?
+  lastReading  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  crop         Crop?      @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  state        CropState? @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  readings     Reading[]
+  alerts       Alert[]
+
+  @@index([cropId])
+  @@index([stateId])
+  @@index([status])
+}
+
+model Crop {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  ranges      Json        @default("{}")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  states      CropState[]
+  nodes       Node[]
+}
+
+model CropState {
+  id        String   @id @default(cuid())
+  cropId    String
+  name      String
+  order     Int
+  isActive  Boolean  @default(false)
+  ranges    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  crop      Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  nodes     Node[]
+
+  @@unique([cropId, name])
+  @@unique([cropId, order])
+  @@index([cropId, isActive])
+}
+
+model Reading {
+  id          String   @id @default(cuid())
+  nodeId      String
+  humidity    Float
+  ph          Float
+  salinity    Float
+  soilTemp    Float
+  ambientTemp Float
+  timestamp   DateTime @default(now())
+  node        Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, timestamp])
+  @@index([timestamp])
+}
+
+model Alert {
+  id        String        @id @default(cuid())
+  nodeId    String
+  variable  String
+  value     Float
+  rangeMin  Float
+  rangeMax  Float
+  severity  AlertSeverity
+  status    AlertStatus   @default(ACTIVA)
+  message   String
+  createdAt DateTime      @default(now())
+  readAt    DateTime?
+  closedAt  DateTime?
+  node      Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, createdAt])
+  @@index([status, severity])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  changes   Json?
+  timestamp DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([entity, entityId])
+}
+
+model SystemConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model ReportRecord {
+  id        String        @id @default(cuid())
+  userId    String?
+  format    String
+  filters   Json
+  createdAt DateTime      @default(now())
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shares    ReportShare[]
+
+  @@index([userId, createdAt])
+}
+
+model ReportShare {
+  id        String       @id @default(cuid())
+  reportId  String
+  tokenHash String       @unique
+  expiresAt DateTime
+  createdAt DateTime     @default(now())
+  report    ReportRecord @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}

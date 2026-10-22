@@ -1,0 +1,75 @@
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+    },
+    extend: {
+      colors: {
+        primary: {
+          100: '#D8F3DC',
+          300: '#74C69D',
+          500: '#40916C',
+          700: '#2D6A4F',
+          900: '#1B4332',
+        },
+        success: '#2D6A4F',
+        warning: '#9A5700',
+        danger: '#C1121F',
+        info: '#37637F',
+        neutral: '#5E6B63',
+        base: '#F8FAF9',
+        surface: '#FFFFFF',
+        elevated: '#F1F5F2',
+        dark: '#1A2E24',
+        canvas: '#EAF4EC',
+        'text-primary': '#1B2E24',
+        'text-secondary': '#5A6B62',
+        'text-muted': '#5E6B63',
+        'text-inverse': '#FFFFFF',
+        'border-default': '#DCE5DF',
+        'border-focus': '#40916C',
+        chart: {
+          humidity: '#20786E',
+          ph: '#8338EC',
+          salinity: '#806000',
+          'soil-temp': '#B8472C',
+          'ambient-temp': '#9A4D00',
+        },
+      },
+      fontFamily: {
+        display: ['Plus Jakarta Sans', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      borderRadius: {
+        sm: '6px',
+        md: '10px',
+        lg: '16px',
+        full: '9999px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(27,46,36,0.06)',
+        md: '0 4px 12px rgba(27,46,36,0.08)',
+        lg: '0 8px 24px rgba(27,46,36,0.12)',
+      },
+      spacing: {
+        1: '4px',
+        2: '8px',
+        3: '12px',
+        4: '16px',
+        6: '24px',
+        8: '32px',
+        12: '48px',
+        16: '64px',
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;

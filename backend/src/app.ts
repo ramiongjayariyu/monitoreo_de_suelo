@@ -1,0 +1,51 @@
+import 'dotenv/config';
+import express, { type RequestHandler } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
+import { corsOptions } from './config/cors';
+import { env } from './config/env';
+import { errorHandler } from './middlewares/errorHandler';
+import { authRouter } from './routes/auth';
+import { alertRouter } from './routes/alerts';
+import { cropRouter } from './routes/crops';
+import { dashboardRouter } from './routes/dashboard';
+import { healthRouter } from './routes/health';
+import { historyRouter } from './routes/history';
+import { ingestRouter } from './routes/ingest';
+import { nodeRouter } from './routes/nodes';
+import { reportRouter } from './routes/reports';
+import { configRouter } from './routes/config';
+import { auditRouter } from './routes/audit';
+import { userRouter } from './routes/users';
+import { openApiDocument } from './docs/openapi';
+
+export const app = express();
+const docsSecurityHeaders: RequestHandler = (_request, response, next) => {
+  response.removeHeader('Content-Security-Policy');
+  next();
+};
+
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(express.json({ limit: '1mb' }));
+app.get('/api/docs/openapi.json', (_request, response) => response.json(openApiDocument));
+app.use('/api/docs', docsSecurityHeaders, swaggerUi.serve, swaggerUi.setup(openApiDocument));
+app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/ingest', ingestRouter);
+app.use('/api/alerts', alertRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/history', historyRouter);
+app.use('/api/crops', cropRouter);
+app.use('/api/nodes', nodeRouter);
+app.use('/api/reports', reportRouter);
+app.use('/api/config', configRouter);
+app.use('/api/audit', auditRouter);
+app.use('/api/users', userRouter);
+app.use((_request, response) => {
+  response.status(404).json({ status: 'error', message: 'Ruta no encontrada.' });
+});
+app.use(errorHandler);

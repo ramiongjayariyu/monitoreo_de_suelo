@@ -1,0 +1,23 @@
+# Dependencias y compilados
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+
+# Configuracion local y secretos
+.env
+.env.*
+!.env.example
+
+# Archivos generados
+backend/src/generated/
+*.log
+*.tsbuildinfo
+
+# Herramientas y sistema operativo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

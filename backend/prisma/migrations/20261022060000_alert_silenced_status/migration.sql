@@ -1,0 +1,1 @@
+ALTER TYPE "AlertStatus" ADD VALUE 'SILENCIADA';
